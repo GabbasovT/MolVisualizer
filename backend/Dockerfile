@@ -5,9 +5,12 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     libsm6 \
     libxext6 \
+    libfontconfig1 \
+    libfreetype6 \
+    libgl1-mesa-glx \
+    libgtk2.0-0 \
+    git \
     && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get install -y git && apt-get clean
 
 COPY requirements.txt requirements.txt
 
