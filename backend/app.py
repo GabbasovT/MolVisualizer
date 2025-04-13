@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, send_file, jsonify
-from flask_cors import CORS
 from threading import Lock
 from io import BytesIO
 import pandas as pd
