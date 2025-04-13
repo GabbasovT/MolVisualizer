@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MolVisualizer | Interactive 3D Molecular Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --info: #560bad;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7fa;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .input-container {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .smiles-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .smiles-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .btn i {
+            margin-right: 0.5rem;
+        }
+
+        .error {
+            color: var(--warning);
+            background-color: rgba(247, 37, 133, 0.1);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            border-left: 4px solid var(--warning);
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .molecule-viewer {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+            height: 1200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .molecule-viewer h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .molecule-viewer h2 i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .viewer-container {
+            flex-grow: 1;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .properties-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+        }
+
+        .properties-container h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .properties-container h2 i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .property-card {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: var(--transition);
+            border-left: 4px solid var(--accent);
+        }
+
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .property-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .property-name i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .property-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            color: var(--dark);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .property-unit {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-left: 0.3rem;
+            font-weight: 400;
+        }
+
+        .property-range {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .property-interpretation {
+            font-size: 0.95rem;
+            padding: 0.8rem;
+            background-color: rgba(72, 149, 239, 0.1);
+            border-radius: var(--border-radius);
+            margin-top: 0.5rem;
+        }
+
+        .examples {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .examples h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .example-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .example-chip {
+            background: #e9ecef;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .example-chip:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        .color-legend {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .color-legend h3 {
+            margin-bottom: 0.8rem;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .color-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .color-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 0.8rem;
+            border: 1px solid #ddd;
+        }
+
+        .legend-note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-atom"></i> MolVisualizer</h1>
+            <p class="subtitle">Interactive 3D Molecular Visualization with Property Prediction</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="input-container">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="smiles"><i class="fas fa-code"></i> SMILES String</label>
+                    <input type="text" id="smiles" name="smiles" class="smiles-input"
+                           value="{{ current_smiles }}" placeholder="Enter a valid SMILES string (e.g., CCO for ethanol)">
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="/csv_upload" class="btn" style="background-color: #4cc9f0;">
+                        <i class="fas fa-file-csv"></i> Process CSV File
+                    </a>
+                </div>
+                <button type="submit" class="btn"><i class="fas fa-eye"></i> Visualize Molecule</button>
+            </form>
+
+            {% if error %}
+            <div class="error">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="visualization-container">
+            <div class="molecule-viewer">
+                <h2><i class="fas fa-molecule"></i> 3D Molecular Structure</h2>
+                <div class="viewer-container">
+                    {{ molecule_html|safe }}
+                </div>
+
+                <p style="margin-top: 1rem; font-size: 0.9rem; text-align: center;">
+                    <i class="fas fa-mouse-pointer"></i> Click and drag to rotate | Scroll to zoom
+                </p>
+            </div>
+
+            <div class="properties-container">
+                <h2><i class="fas fa-chart-bar"></i> Predicted Properties</h2>
+                {% if properties %}
+                <div class="property-grid">
+                    <div class="property-card">
+                        <div class="property-name"><i class="fas fa-water"></i> logP</div>
+                        <div class="property-range">Ideal range: {{ properties.logp.ideal_range }}</div>
+                        <div class="property-value">
+                            {{ "%.5f"|format(properties.logp.value) }}<span class="property-unit">{{ properties.logp.unit }}</span>
+                        </div>
+                        <div class="property-interpretation">
+                            {{ properties.logp.interpretation }}
+                        </div>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-name"><i class="fas fa-weight-hanging"></i> Molecular Weight</div>
+                        <div class="property-range">Ideal range: {{ properties.molecular_weight.ideal_range }}</div>
+                        <div class="property-value">
+                            {{ "%.5f"|format(properties.molecular_weight.value) }}<span class="property-unit">{{ properties.molecular_weight.unit }}</span>
+                        </div>
+                        <div class="property-interpretation">
+                            {{ properties.molecular_weight.interpretation }}
+                        </div>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-name"><i class="fas fa-bullseye"></i> Polar Surface Area</div>
+                        <div class="property-range">Ideal range: {{ properties.polar_surface_area.ideal_range }}</div>
+                        <div class="property-value">
+                            {{ "%.5f"|format(properties.polar_surface_area.value) }}<span class="property-unit">{{ properties.polar_surface_area.unit }}</span>
+                        </div>
+                        <div class="property-interpretation">
+                            {{ properties.polar_surface_area.interpretation }}
+                        </div>
+                    </div>
+
+                    <div class="property-card">
+                        <div class="property-name"><i class="fas fa-link"></i> Rotatable Bonds</div>
+                        <div class="property-range">Ideal range: {{ properties.rotatable_bonds.ideal_range }}</div>
+                        <div class="property-value">
+                            {{ properties.rotatable_bonds.value }}<span class="property-unit">{{ properties.rotatable_bonds.unit }}</span>
+                        </div>
+                        <div class="property-interpretation">
+                            {{ properties.rotatable_bonds.interpretation }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <p class="disclaimer">
+                    <i class="fas fa-info-circle"></i> Note: the values of the quantities are calculated using the rdkit library and LogP is the prediction of our machine learning model.
+                </p>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3><i class="fas fa-lightbulb"></i> Try these examples:</h3>
+            <div class="example-list">
+                <div class="example-chip" onclick="document.getElementById('smiles').value='CCO'">CCO (Ethanol)</div>
+                <div class="example-chip" onclick="document.getElementById('smiles').value='C1CCCCC1'">C1CCCCC1 (Cyclohexane)</div>
+                <div class="example-chip" onclick="document.getElementById('smiles').value='CN(C)C=O'">CN(C)C=O (DMF)</div>
+                <div class="example-chip" onclick="document.getElementById('smiles').value='C1=CC=CC=C1'">C1=CC=CC=C1 (Benzene)</div>
+                <div class="example-chip" onclick="document.getElementById('smiles').value='CC(=O)O'">CC(=O)O (Acetic acid)</div>
+                <div class="example-chip" onclick="document.getElementById('smiles').value='CCOC(=O)C'">CCOC(=O)C (Ethyl acetate)</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>MolVisualizer &copy; 2025 | Interactive 3D Molecular Visualization Tool | prod. by GabbasovT</p>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.example-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelector('form').submit();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Processing | MolVisualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --info: #560bad;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7fa;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .upload-container {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent);
+        }
+
+        .instructions h2 {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .instructions h2 i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .instructions ol {
+            padding-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        label i {
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px dashed #e9ecef;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .file-input:hover {
+            border-color: var(--accent);
+            background: rgba(72, 149, 239, 0.05);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .btn i {
+            margin-right: 0.5rem;
+        }
+
+        .error {
+            color: var(--warning);
+            background-color: rgba(247, 37, 133, 0.1);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            border-left: 4px solid var(--warning);
+            display: flex;
+            align-items: center;
+        }
+
+        .error i {
+            margin-right: 0.5rem;
+        }
+
+        .sample-csv {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .sample-csv a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sample-csv a:hover {
+            text-decoration: underline;
+        }
+
+        .sample-csv a i {
+            margin-right: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-status {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .progress-percent {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .processing-message {
+            text-align: center;
+            margin: 1rem 0;
+            font-style: italic;
+            color: var(--info);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .processing-message i {
+            margin-right: 0.5rem;
+        }
+
+        #results-container {
+            display: none;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .success-message {
+            margin-bottom: 1.5rem;
+        }
+
+        .success-message i {
+            color: var(--success);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message h3 {
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .download-btn {
+            background-color: var(--success);
+            margin-top: 1rem;
+        }
+
+        .download-btn:hover {
+            background-color: #3aa8d1;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 1rem;
+            font-style: italic;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-file-csv"></i> Batch SMILES Processing</h1>
+            <p class="subtitle">Upload a CSV file to predict logP values for multiple molecules</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="upload-container">
+            <div class="instructions">
+                <h2><i class="fas fa-info-circle"></i> Instructions</h2>
+                <ol>
+                    <li>Prepare a CSV file with one column named <strong>"smiles"</strong> containing your SMILES strings</li>
+                    <li>Upload the file using the form below</li>
+                    <li>Download the results CSV with predicted logP values</li>
+                </ol>
+            </div>
+
+            {% if error %}
+            <div class="error">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form id="upload-form" method="POST" class="upload-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="csv_file"><i class="fas fa-upload"></i> Select CSV File</label>
+                    <input type="file" id="csv_file" name="csv_file" class="file-input" accept=".csv" required>
+                </div>
+
+                <button type="submit" class="btn" id="submit-btn">
+                    <i class="fas fa-calculator"></i> Predict logP Values
+                </button>
+            </form>
+
+            <!-- Progress Bar Section -->
+            <div class="progress-container" id="progress-container">
+                <div class="progress-header">
+                    <span class="progress-status" id="progress-status">Ready</span>
+                    <span class="progress-percent" id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="processing-message" id="processing-message">
+                    <i class="fas fa-cog fa-spin"></i> Processing your file. Please wait...
+                </div>
+            </div>
+
+            <!-- Results Section (hidden initially) -->
+            <div id="results-container">
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Predictions Complete!</h3>
+                    <p>Your results are ready to download</p>
+                </div>
+                <a href="#" id="download-link" class="btn download-btn">
+                    <i class="fas fa-download"></i> Download Results
+                </a>
+            </div>
+
+            <div class="sample-csv">
+                <p>Need a sample CSV file? <a href="/project/backend/static/sample_smiles.csv" download><i class="fas fa-download"></i> Download sample</a></p>
+            </div>
+
+            <p class="disclaimer">
+                <i class="fas fa-info-circle"></i> Note: LogP values are predicted using our machine learning model.
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <p>MolVisualizer &copy; 2025 | Interactive 3D Molecular Visualization Tool | prod. by GabbasovT</p>
+    </footer>
+
+    <!-- JavaScript for Progress Bar -->
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Show progress bar
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('submit-btn').disabled = true;
+
+            // Create FormData object
+            const formData = new FormData(this);
+
+            // Start progress polling
+            const progressInterval = setInterval(updateProgress, 500);
+
+            // Submit form via AJAX
+            fetch('/csv_upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                // Hide progress bar, show results
+                clearInterval(progressInterval);
+                document.getElementById('progress-container').style.display = 'none';
+                document.getElementById('results-container').style.display = 'block';
+
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-link').href = url;
+                document.getElementById('download-link').download = 'logP_predictions.csv';
+
+                // Re-enable submit button
+                document.getElementById('submit-btn').disabled = false;
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                document.getElementById('progress-status').textContent = 'Error occurred';
+                document.getElementById('submit-btn').disabled = false;
+                alert('Error: ' + error.message);
+            });
+        });
+
+        function updateProgress() {
+            fetch('/progress')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('progress-fill').style.width = data.progress + '%';
+                    document.getElementById('progress-percent').textContent = data.progress + '%';
+                    document.getElementById('progress-status').textContent = data.task;
+                });
+        }
+    </script>
+</body>
+</html>
